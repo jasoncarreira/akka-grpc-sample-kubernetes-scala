@@ -18,7 +18,7 @@ package com.example.helloworld
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.Codecs
+import akka.grpc.GrpcProtocol
 import akka.grpc.scaladsl.{GrpcExceptionHandler, GrpcMarshalling}
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
@@ -59,18 +59,24 @@ object Reflection {
 
     {
       case req: HttpRequest if req.uri.path == ReflectionPath =>
-        val responseCodec = Codecs.negotiate(req)
-        GrpcMarshalling
-          .unmarshalStream(req)(ServerReflectionRequestSerializer, mat)
-          .map(_.via(handler))
-          .map(
-            e =>
-              GrpcMarshalling.marshalStream(e,
-                                            GrpcExceptionHandler.defaultMapper)(
-                ServerReflectionResponseSerializer,
-                mat,
-                responseCodec,
-                sys))
+
+        GrpcProtocol
+          .negotiate(req)
+          .map {
+            case (maybeReader, writer) =>
+              GrpcMarshalling
+                .unmarshalStream(req)(ServerReflectionRequestSerializer, mat)
+                .map(_.via(handler))
+                .map(
+                  e =>
+                    GrpcMarshalling.marshalStream(e,
+                      GrpcExceptionHandler.defaultMapper)(
+                      ServerReflectionResponseSerializer,
+                      writer,
+                      sys)
+                )
+          }
+        .getOrElse(Future.failed(new RuntimeException("GrpcProtocol.negotiate failed")))
     }
   }
 
@@ -150,7 +156,7 @@ object Reflection {
             .map(_.toProto.toByteString)
             .toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
-        case In.FileContainingExtension(ExtensionRequest(container, number)) =>
+        case In.FileContainingExtension(ExtensionRequest(container, number, unknown)) =>
           val list = findFileDescForExtension(
             container,
             number,

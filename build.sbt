@@ -1,16 +1,15 @@
 name := "akka-grpc-kubernetes"
-scalaVersion := "2.12.8"
 
+ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / version := "0.3.0-SNAPSHOT"
 
-version in ThisBuild := "0.2.0-SNAPSHOT"
-
-lazy val akkaVersion = "2.5.23"
-lazy val discoveryVersion = "1.0.1"
-lazy val akkaHttpVersion = "10.1.9"
-lazy val alpnVersion = "2.0.9"
-val jacksonVersion = "2.9.9"
-val swaggerVersion = "2.0.8"
-val grpcVersion = "1.22.1"
+val akkaVersion = "2.6.6"
+val discoveryVersion = "1.0.8"
+val akkaHttpVersion = "10.1.12"
+val alpnVersion = "2.0.9"
+val jacksonVersion = "2.11.1"
+val swaggerVersion = "2.1.2"
+val grpcVersion = "1.30.2"
 
 lazy val root = (project in file("."))
   .aggregate(httpToGrpc, grpcService)
@@ -20,10 +19,10 @@ lazy val httpToGrpc = (project in file("http-to-grpc"))
   .enablePlugins(AkkaGrpcPlugin, DockerPlugin, JavaAppPackaging, JavaAgent)
   .settings(
     libraryDependencies ++= Seq(
-      "javax.ws.rs" % "javax.ws.rs-api" % "2.0.1",
-      "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.0.3",
-      "com.github.swagger-akka-http" %% "swagger-scala-module" % "2.0.4",
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9",
+      "javax.ws.rs" % "javax.ws.rs-api" % "2.1.1",
+      "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.1.1",
+      "com.github.swagger-akka-http" %% "swagger-scala-module" % "2.1.2",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "io.swagger.core.v3" % "swagger-core" % swaggerVersion,
       "io.swagger.core.v3" % "swagger-annotations" % swaggerVersion,
       "io.swagger.core.v3" % "swagger-models" % swaggerVersion,
